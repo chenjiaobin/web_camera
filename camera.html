@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>camera</title>
+  <link rel="stylesheet" type="text/css" href="./css/index.css">
+<!-- 	<script src="//cdn.bootcss.com/eruda/1.2.4/eruda.min.js"></script>
+    <script>
+        eruda.init();
+    </script> -->
+</head>
+<body>
+<div class="camera">
+	<div class="sence">
+		<video id="sen-video"></video>
+		<canvas id="sen-canvas"></canvas>
+	</div>
+	<div class="comtrol">
+		<div id="face">
+			<img width="30" height="30" src="./images/change.svg">
+		</div>
+		<div id="save-and-delete">
+			<img width="30" height="30" src="./images/dacha.svg">
+			<img width="30" height="30" src="./images/dagou.svg">
+		</div>
+		<div id="takePhoto">
+			<button class="action"></button>
+		</div>
+		<div id="allScreen">
+      <img width="30" height="30" src="./images/quanping.svg" id='img1'>
+      <img width="30" height="30" class="hide" src="./images/tuichuquanping.svg" id='img2'>  
+    </div>
+	</div>
+</div>
+<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src='./js/eventUtil.js'></script>
+<script>
+    function $(ele){
+      return document.querySelector(ele);
+    }
+    // 获取媒体方法(旧方法)
+    navigator.getMedia=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia||navigator.msGetUserMedia;
+    var canvas=$('canvas'),
+        context=canvas.getContext('2d'),
+        mediaTruck,
+        video=$('video');
+        console.log(canvas);
+        //获取媒体，即使用新方法打开摄像头
+      if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+          navigator.mediaDevices.getUserMedia({
+            video:true,
+            audio:true
+          }).then(function(stream){
+            mediaTruck=typeof stream.stop==='function'?stream:stream.getTracks()[1];
+              video.src=(window.URL||window.webkitURL).createObjectURL(stream);
+              video.play();
+          }).catch(function(err){
+            console.log(err);
+          })
+      }else if(navigator.getMedia){
+        navigator.getMedia({
+          video:true
+        },function(stream){
+          mediaTruck=stream.getTracks()[0];
+          video.src=(window.URL||window.webkitURL).createObjectURL(stream);
+          video.play();
+        },function(err){
+          console.log(err);
+        })
+      } 
+
+      var fullsrceenEnabled=document.fullscreenEnabled = (function () {
+            var doc = document.documentElement;
+            return ('requestFullscreen' in doc) ||
+                ('webkitRequestFullScreen' in doc) ||
+                // 对Firefox除了能力判断，还加上了属性判断
+                ('mozRequestFullScreen' in doc && document.mozFullScreenEnabled) ||
+                false;
+        })();
+      //全屏函数处理
+      function requestFullscreen(elem) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            }else if (elem.webkitRequestFullScreen) {
+                // 对 Chrome 特殊处理，
+                // 参数 Element.ALLOW_KEYBOARD_INPUT 使全屏状态中可以键盘输入。
+                if (window.navigator.userAgent.toUpperCase().indexOf('CHROME') >= 0) {
+                    elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+                }
+                // Safari 浏览器中，如果方法内有参数，则 Fullscreen 功能不可用。
+                else {
+                    elem.webkitRequestFullScreen();
+                }
+            }
+            else if (elem.mozRequestFullScreen) {
+                elem.mozRequestFullScreen();
+            }
+        }
+
+        //退出全屏的函数处理
+         function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            }
+            else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            }
+        }
+      // 事件处理
+      (function(){
+         var action=document.getElementsByClassName('action')[0];
+         var img1=document.getElementById('img1');
+         var img2=document.getElementById('img2');
+          eventUtil.addHandler(action,'click',function(){
+            context.drawImage(video,0,0,150,150);
+          })
+          eventUtil.addHandler(img1,'click',function(){
+            if(fullsrceenEnabled){
+              requestFullscreen($('.camera'));
+              img1.style.display='none';
+              img2.style.display='block';
+            }
+          })
+          eventUtil.addHandler(img2,'click',function(){
+            exitFullscreen();
+            img1.style.display='block';
+            img2.style.display="none";
+          })
+      })()
+     
+</script>
+</body>
+</html>
